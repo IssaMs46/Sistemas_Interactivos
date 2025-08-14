@@ -1,20 +1,35 @@
+using System;
 using System.Collections;
-using UnityEngine.Networking;
 using UnityEngine;
+using UnityEngine.Networking;
 using UnityEngine.UI;
+using TMPro;
 
 public class HttpAA : MonoBehaviour
 {
-    
-    [SerializeField] private int userId = 1; // ID del usuario en tu JSON
-    [SerializeField] private RawImage[] deckImages; // Asignar en el inspector las 5 RawImage
+    [Header("UI Elements")]
+    [SerializeField] private TMP_InputField userIdInput; // Input para escribir ID del usuario
+    [SerializeField] private Button loadButton;          // Botón para cargar datos
+    [SerializeField] private TMP_Text usernameText;      // Texto para mostrar nombre del usuario
+    [SerializeField] private RawImage[] deckImages;      // Imágenes de los personajes
+    [SerializeField] private TMP_Text[] deckNames;       // Textos para nombres de personajes
 
     private string APIUrl = "https://my-json-server.typicode.com/IssaMs46/Sistemas_Interactivos/users/";
     private string RickAndMortyUrl = "https://rickandmortyapi.com/api/character/";
 
-    void Start()
+    private void Start()
     {
-        StartCoroutine(GetUser(userId));
+        loadButton.onClick.AddListener(() =>
+        {
+            if (int.TryParse(userIdInput.text, out int id))
+            {
+                StartCoroutine(GetUser(id));
+            }
+            else
+            {
+                Debug.LogWarning("El ID ingresado no es válido");
+            }
+        });
     }
 
     IEnumerator GetUser(int userId)
@@ -33,13 +48,24 @@ public class HttpAA : MonoBehaviour
             string json = request.downloadHandler.text;
             Debug.Log("User JSON: " + json);
 
-            // Convertir el JSON a clase User
             User user = JsonUtility.FromJson<User>(json);
 
-            // Obtener las imágenes de su deck
+            // Mostrar el nombre del usuario
+            if (usernameText != null)
+                usernameText.text = user.username;
+
+            // Limpiar imágenes y textos anteriores
+            for (int i = 0; i < deckImages.Length; i++)
+            {
+                deckImages[i].texture = null;
+                if (i < deckNames.Length)
+                    deckNames[i].text = "";
+            }
+
+            // Obtener personajes del deck
             for (int i = 0; i < user.deck.Length && i < deckImages.Length; i++)
             {
-                StartCoroutine(GetCharacterImage(user.deck[i], deckImages[i]));
+                StartCoroutine(GetCharacter(user.deck[i], deckImages[i], deckNames[i]));
             }
         }
         else
@@ -48,7 +74,7 @@ public class HttpAA : MonoBehaviour
         }
     }
 
-    IEnumerator GetCharacterImage(int characterId, RawImage targetImage)
+    IEnumerator GetCharacter(int characterId, RawImage targetImage, TMP_Text targetName)
     {
         UnityWebRequest request = UnityWebRequest.Get(RickAndMortyUrl + characterId);
         yield return request.SendWebRequest();
@@ -63,6 +89,12 @@ public class HttpAA : MonoBehaviour
         {
             string json = request.downloadHandler.text;
             Character character = JsonUtility.FromJson<Character>(json);
+
+            // Poner nombre del personaje
+            if (targetName != null)
+                targetName.text = character.name;
+
+            // Poner imagen
             StartCoroutine(GetImage(character.image, targetImage));
         }
         else
@@ -94,7 +126,7 @@ public class HttpAA : MonoBehaviour
     }
 }
 
-[System.Serializable]
+[Serializable]
 public class User
 {
     public int id;
@@ -103,7 +135,7 @@ public class User
     public int[] deck;
 }
 
-[System.Serializable]
+[Serializable]
 public class Character
 {
     public int id;
