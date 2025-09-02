@@ -2,7 +2,6 @@ using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 using System.Collections;
-using UnityEngine.Networking;
 
 public class WhackAMole : MonoBehaviour
 {
@@ -12,39 +11,35 @@ public class WhackAMole : MonoBehaviour
 
     public GameObject gamePanel;
     public GameObject endPanel;
-    
+
     public TextMeshProUGUI finalScoreText; 
     public TextMeshProUGUI usernameText;
-    
+
     public float gameDuration = 20f; // duración del juego en segundos
     private int score = 0;
     private float timeLeft;
     private bool gameRunning = false;
 
-    private string apiUrl = "https://sid-restapi.onrender.com"; 
-    
-    
     void Start()
     {
         timeLeft = gameDuration;
         moleButton.onClick.AddListener(HitMole);
         moleButton.gameObject.SetActive(false);
-        
-        
+
         // Aseguramos el estado inicial de los paneles
         if (gamePanel != null) gamePanel.SetActive(true);
         if (endPanel != null) endPanel.SetActive(false);
-        
-        // 👇 Mostrar el nombre de usuario obtenido desde AuthHandler
+
+        // Mostrar el nombre de usuario obtenido desde AuthHandler
         if (usernameText != null)
         {
             usernameText.text = "Jugador: " + AuthHandler.Username;
         }
         else
         {
-            Debug.Log("no se encontro username");
+            Debug.Log("No se encontró usernameText");
         }
-        
+
         StartCoroutine(GameLoop());
     }
 
@@ -86,7 +81,6 @@ public class WhackAMole : MonoBehaviour
     {
         if (!gameRunning) return;
 
-        // posición aleatoria dentro del canvas
         RectTransform rt = moleButton.GetComponent<RectTransform>();
         float x = Random.Range(-200f, 200f);
         float y = Random.Range(-100f, 100f);
@@ -109,38 +103,27 @@ public class WhackAMole : MonoBehaviour
         moleButton.gameObject.SetActive(false);
         timerText.text = "¡Fin del juego!";
 
-        // Cambiar de panel
         if (gamePanel != null) gamePanel.SetActive(false);
         if (endPanel != null) endPanel.SetActive(true);
-        
+
         finalScoreText.text = "Tu puntuación: " + score;
-        
-        StartCoroutine(SendScore(AuthHandler.Username, score));
 
-        // Aquí luego puedes enviar el score a la API con UnityWebRequest
-    }
-    
-    IEnumerator SendScore(string username, int score)
-    {
-        WWWForm form = new WWWForm();
-        form.AddField("username", username);
-        form.AddField("score", score);
-
-        using (UnityWebRequest www = UnityWebRequest.Post(apiUrl, form))
+        // Usar directamente el método de AuthHandler para actualizar el score
+        if (!string.IsNullOrEmpty(AuthHandler.Username) && !string.IsNullOrEmpty(AuthHandler.Token))
         {
-            // 👇 Si tu API requiere autenticación con token tipo Bearer
-            www.SetRequestHeader("Authorization", "Bearer " + AuthHandler.Token);
-
-            yield return www.SendWebRequest();
-
-            if (www.result == UnityWebRequest.Result.Success)
+            AuthHandler instance = FindObjectOfType<AuthHandler>();
+            if (instance != null)
             {
-                Debug.Log("✅ Score enviado correctamente: " + www.downloadHandler.text);
+                instance.UpdateScore(score);
             }
             else
             {
-                Debug.LogError("❌ Error enviando score: " + www.error);
+                Debug.LogError("❌ No se encontró AuthHandler en la escena.");
             }
+        }
+        else
+        {
+            Debug.LogError("❌ Usuario no autenticado. No se puede enviar score.");
         }
     }
 }

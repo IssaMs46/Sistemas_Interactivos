@@ -14,4 +14,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/Jueguito.unity
     guid: a9f1b0365b30d9244b37255dadfe4297
+  - enabled: 1
+    path: Assets/Scenes/Marcador.unity
+    guid: d924b64079ca5d34aa6e0df4b176953b
   m_configObjects: {}
