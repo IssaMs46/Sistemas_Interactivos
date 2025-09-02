@@ -2,6 +2,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 using System.Collections;
+using UnityEngine.Networking;
 
 public class WhackAMole : MonoBehaviour
 {
@@ -20,6 +21,9 @@ public class WhackAMole : MonoBehaviour
     private float timeLeft;
     private bool gameRunning = false;
 
+    private string apiUrl = "https://sid-restapi.onrender.com"; 
+    
+    
     void Start()
     {
         timeLeft = gameDuration;
@@ -110,7 +114,33 @@ public class WhackAMole : MonoBehaviour
         if (endPanel != null) endPanel.SetActive(true);
         
         finalScoreText.text = "Tu puntuación: " + score;
+        
+        StartCoroutine(SendScore(AuthHandler.Username, score));
 
         // Aquí luego puedes enviar el score a la API con UnityWebRequest
+    }
+    
+    IEnumerator SendScore(string username, int score)
+    {
+        WWWForm form = new WWWForm();
+        form.AddField("username", username);
+        form.AddField("score", score);
+
+        using (UnityWebRequest www = UnityWebRequest.Post(apiUrl, form))
+        {
+            // 👇 Si tu API requiere autenticación con token tipo Bearer
+            www.SetRequestHeader("Authorization", "Bearer " + AuthHandler.Token);
+
+            yield return www.SendWebRequest();
+
+            if (www.result == UnityWebRequest.Result.Success)
+            {
+                Debug.Log("✅ Score enviado correctamente: " + www.downloadHandler.text);
+            }
+            else
+            {
+                Debug.LogError("❌ Error enviando score: " + www.error);
+            }
+        }
     }
 }
