@@ -1,4 +1,4 @@
-using System;
+/*using System;
 using System.Collections;
 using UnityEngine;
 using UnityEngine.Networking;
@@ -143,3 +143,4 @@ public class Character
     public string species;
     public string image;
 }
+*/
