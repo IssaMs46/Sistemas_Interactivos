@@ -21,6 +21,7 @@ public class AuthHandler : MonoBehaviour
         Debug.Log("No stored credentials. Please log in manually.");
     }
 
+    // --- LOGIN ---
     public void Login()
     {
         string username = GameObject.Find("InputFieldUsername").GetComponent<TMP_InputField>().text;
@@ -44,12 +45,10 @@ public class AuthHandler : MonoBehaviour
         if (www.result == UnityWebRequest.Result.Success)
         {
             Debug.Log("Login successful");
-
             AuthResponse response = JsonUtility.FromJson<AuthResponse>(www.downloadHandler.text);
             Token = response.token;
             Username = response.usuario.username;
             Debug.Log("Token received for " + Username);
-
             SetUIForUserLogged();
         }
         else
@@ -58,12 +57,50 @@ public class AuthHandler : MonoBehaviour
         }
     }
 
-    public void SetUIForUserLogged()
+    // --- REGISTER / CREAR USUARIO ---
+    public void Register()
     {
-        SceneManager.LoadScene("Jueguito");
+        string username = GameObject.Find("InputFieldUsername2").GetComponent<TMP_InputField>().text;
+        string password = GameObject.Find("InputFieldPassword2").GetComponent<TMP_InputField>().text;
+
+        if (string.IsNullOrEmpty(username) || string.IsNullOrEmpty(password))
+        {
+            Debug.LogWarning("Debe ingresar un usuario y contraseña");
+            return;
+        }
+
+        StartCoroutine(RegisterCoroutine(username, password));
     }
 
-    // Actualizar score en el servidor
+    private IEnumerator RegisterCoroutine(string username, string password)
+    {
+        string url = apiUrl + "/api/usuarios";
+
+        AuthData data = new AuthData { username = username, password = password };
+        string jsonData = JsonUtility.ToJson(data);
+        byte[] bodyRaw = System.Text.Encoding.UTF8.GetBytes(jsonData);
+
+        UnityWebRequest request = new UnityWebRequest(url, "POST");
+        request.uploadHandler = new UploadHandlerRaw(bodyRaw);
+        request.downloadHandler = new DownloadHandlerBuffer();
+        request.SetRequestHeader("Content-Type", "application/json");
+
+        yield return request.SendWebRequest();
+
+        if (request.result == UnityWebRequest.Result.Success)
+        {
+            Debug.Log("Usuario creado correctamente: " + request.downloadHandler.text);
+            // Loguear automáticamente al usuario tras crearlo
+            StartCoroutine(LoginCoroutine(username, password));
+        }
+        else
+        {
+            Debug.LogError("Error al crear usuario: " + request.error);
+            Debug.LogError("Respuesta: " + request.downloadHandler.text);
+        }
+    }
+
+    // --- SCORE UPDATE ---
     public void UpdateScore(int newScore)
     {
         StartCoroutine(UpdateScoreCoroutine(newScore));
@@ -98,6 +135,11 @@ public class AuthHandler : MonoBehaviour
             Debug.LogError("Error al actualizar score: " + patchRequest.error);
             Debug.LogError("Respuesta: " + patchRequest.downloadHandler.text);
         }
+    }
+
+    public void SetUIForUserLogged()
+    {
+        SceneManager.LoadScene("Jueguito");
     }
 }
 
