@@ -9,6 +9,11 @@ public class WhackAMole : MonoBehaviour
     public TextMeshProUGUI scoreText;
     public TextMeshProUGUI timerText;
 
+    public GameObject gamePanel;
+    public GameObject endPanel;
+    
+    public TextMeshProUGUI finalScoreText; 
+    
     public float gameDuration = 20f; // duración del juego en segundos
     private int score = 0;
     private float timeLeft;
@@ -19,6 +24,12 @@ public class WhackAMole : MonoBehaviour
         timeLeft = gameDuration;
         moleButton.onClick.AddListener(HitMole);
         moleButton.gameObject.SetActive(false);
+        
+        
+        // Aseguramos el estado inicial de los paneles
+        if (gamePanel != null) gamePanel.SetActive(true);
+        if (endPanel != null) endPanel.SetActive(false);
+        
         StartCoroutine(GameLoop());
     }
 
@@ -82,6 +93,13 @@ public class WhackAMole : MonoBehaviour
         gameRunning = false;
         moleButton.gameObject.SetActive(false);
         timerText.text = "¡Fin del juego!";
+
+        // Cambiar de panel
+        if (gamePanel != null) gamePanel.SetActive(false);
+        if (endPanel != null) endPanel.SetActive(true);
+        
+        finalScoreText.text = "Tu puntuación: " + score;
+
         // Aquí luego puedes enviar el score a la API con UnityWebRequest
     }
 }
