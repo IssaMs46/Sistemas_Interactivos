@@ -2,11 +2,12 @@ using System.Collections;
 using TMPro;
 using UnityEngine;
 using UnityEngine.Networking;
+using UnityEngine.SceneManagement;
 
 public class AuthHandler : MonoBehaviour
 {
-    public string Token { get; set; }
-    public string Username { get; set; }
+    public static string Token { get; set; }
+    public static string Username { get; set; }
 
     private string apiUrl = "https://sid-restapi.onrender.com";
 
@@ -80,7 +81,7 @@ public class AuthHandler : MonoBehaviour
 
     public void SetUIForUserLogged()
     {
-        GameObject.Find("PanelLogin").SetActive(false);
+        SceneManager.LoadScene("Jueguito");
     }
 }
 
