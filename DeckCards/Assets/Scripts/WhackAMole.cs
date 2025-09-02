@@ -13,6 +13,7 @@ public class WhackAMole : MonoBehaviour
     public GameObject endPanel;
     
     public TextMeshProUGUI finalScoreText; 
+    public TextMeshProUGUI usernameText;
     
     public float gameDuration = 20f; // duración del juego en segundos
     private int score = 0;
@@ -29,6 +30,16 @@ public class WhackAMole : MonoBehaviour
         // Aseguramos el estado inicial de los paneles
         if (gamePanel != null) gamePanel.SetActive(true);
         if (endPanel != null) endPanel.SetActive(false);
+        
+        // 👇 Mostrar el nombre de usuario obtenido desde AuthHandler
+        if (usernameText != null)
+        {
+            usernameText.text = "Jugador: " + AuthHandler.Username;
+        }
+        else
+        {
+            Debug.Log("no se encontro username");
+        }
         
         StartCoroutine(GameLoop());
     }
