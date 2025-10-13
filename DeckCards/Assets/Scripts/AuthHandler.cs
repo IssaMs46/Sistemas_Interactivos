@@ -9,7 +9,7 @@ public class AuthHandler : MonoBehaviour
     public static string Token { get; private set; }
     public static string Username { get; private set; }
 
-    private string apiUrl = "https://sid-restapi.onrender.com";
+    private string apiUrl = "http://localhost:1234";
 
     private void Awake()
     {

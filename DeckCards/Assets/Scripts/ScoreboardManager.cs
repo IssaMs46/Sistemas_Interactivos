@@ -9,7 +9,7 @@ public class ScoreboardManager : MonoBehaviour
     public TMP_Text[] usernameTexts; // Asigna en inspector
     public TMP_Text[] scoreTexts;    // Asigna en inspector
 
-    private string apiUrl = "https://sid-restapi.onrender.com/api/usuarios";
+    private string apiUrl = "http://localhost:1234/api/usuarios";
 
     void Start()
     {
