@@ -2847,7 +2847,7 @@ GameObject:
   - component: {fileID: 2050999670}
   - component: {fileID: 2050999669}
   - component: {fileID: 2050999668}
-  - component: {fileID: 2050999667}
+  - component: {fileID: 2050999671}
   m_Layer: 5
   m_Name: ButtonRecoverPassword
   m_TagString: Untagged
@@ -2875,22 +2875,6 @@ RectTransform:
   m_AnchoredPosition: {x: -9, y: -389}
   m_SizeDelta: {x: 160, y: 30}
   m_Pivot: {x: 0.5, y: 0.5}
---- !u!114 &2050999667
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2050999665}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: b0e88eff5f87bc74a9466d0d9df428fd, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  _recoverButton: {fileID: 2050999668}
-  _emailInput: {fileID: 952588203}
-  _passwordInput: {fileID: 1997747818}
-  _usernameInput: {fileID: 997794663}
 --- !u!114 &2050999668
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2973,6 +2957,21 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2050999665}
   m_CullTransparentMesh: 1
+--- !u!114 &2050999671
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2050999665}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b0e88eff5f87bc74a9466d0d9df428fd, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _recoverButton: {fileID: 2050999668}
+  _emailInputField: {fileID: 952588203}
+  _feedbackText: {fileID: 0}
 --- !u!1 &2074615124
 GameObject:
   m_ObjectHideFlags: 0
