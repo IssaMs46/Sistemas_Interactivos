@@ -1,4 +1,5 @@
 using Firebase.Auth;
+using Firebase.Database;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -11,6 +12,8 @@ public class ButtonSignUp : MonoBehaviour
     [SerializeField]
     private Button _registrationButton;
     private Coroutine _registrationCoroutine;
+
+    private DatabaseReference mDatabaseRef;
     
     void Reset()
     {
@@ -20,6 +23,7 @@ public class ButtonSignUp : MonoBehaviour
     void Start()
     {
         _registrationButton.onClick.AddListener(HandleRegisterButtonClicked);
+        mDatabaseRef = FirebaseDatabase.DefaultInstance.RootReference;
     }
     
     private void HandleRegisterButtonClicked()
@@ -52,10 +56,11 @@ public class ButtonSignUp : MonoBehaviour
             Firebase.Auth.AuthResult result = registerTask.Result;
             Debug.LogFormat("Firebase user created successfully: {0} ({1})",
                 result.User.DisplayName, result.User.UserId);
+            var userId = result.User.UserId;
+            var username = GameObject.Find("InputFieldUsername").GetComponent<TMP_InputField>().text;
+
+            mDatabaseRef.Child("users").Child(userId).Child("username").SetValueAsync(username);
         }       
 
     }
-    
-    
-    
 }
