@@ -56,9 +56,9 @@ public class ButtonSignUp : MonoBehaviour
             Firebase.Auth.AuthResult result = registerTask.Result;
             Debug.LogFormat("Firebase user created successfully: {0} ({1})",
                 result.User.DisplayName, result.User.UserId);
+            
             var userId = result.User.UserId;
             var username = GameObject.Find("InputFieldUsername").GetComponent<TMP_InputField>().text;
-
             mDatabaseRef.Child("users").Child(userId).Child("username").SetValueAsync(username);
         }       
 

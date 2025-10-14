@@ -1,95 +1,51 @@
 using UnityEngine;
-using UnityEngine.SceneManagement;
-using UnityEngine.UI;
-using System.Collections;
-using TMPro;
-using UnityEngine.Networking;
+using Firebase.Auth;
+using Firebase.Database;
+using System;
 
 public class ScoreManager : MonoBehaviour
 {
-    public static ScoreManager Instance;
-
-    public int Score { get; private set; }
-    public float TimeLeft = 10f;  // ejemplo: 10 segundos por partida
-    public TextMeshProUGUI scoreText;
-    public TextMeshProUGUI timerText;
-    public GameObject EndPanel;
-
-    private string apiUrl = "https://sid-restapi.onrender.com/api/usuarios/score";
-
-    void Awake()
-    {
-        if (Instance == null) Instance = this;
-    }
+    private DatabaseReference dbRef;
 
     void Start()
     {
-        Score = 0;
-        EndPanel.SetActive(false);
+        dbRef = FirebaseDatabase.DefaultInstance.RootReference;
     }
 
-    void Update()
+    public void SaveScore(int score)
     {
-        if (TimeLeft > 0)
+        var currentUser = FirebaseAuth.DefaultInstance.CurrentUser;
+        if (currentUser == null)
         {
-            TimeLeft -= Time.deltaTime;
-            timerText.text = "Time: " + Mathf.CeilToInt(TimeLeft);
+            Debug.LogError("❌ No hay usuario autenticado, no se puede guardar el score.");
+            return;
         }
-        else
+
+        string userId = currentUser.UserId;
+        string timestamp = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ssZ");
+
+        // Guardar puntaje actual
+        dbRef.Child("users").Child(userId).Child("score").SetValueAsync(score);
+
+        // Guardar historial (opcional)
+        string key = dbRef.Child("users").Child(userId).Child("scores").Push().Key;
+        dbRef.Child("users").Child(userId).Child("scores").Child(key).SetRawJsonValueAsync(
+            JsonUtility.ToJson(new ScoreEntry(score, timestamp))
+        );
+
+        Debug.Log($"✅ Score {score} guardado para {userId}");
+    }
+
+    [Serializable]
+    public class ScoreEntry
+    {
+        public int value;
+        public string timestamp;
+
+        public ScoreEntry(int value, string timestamp)
         {
-            EndGame();
-        }
-    }
-
-    public void AddScore(int points)
-    {
-        Score += points;
-        scoreText.text = "Score: " + Score;
-    }
-
-    void EndGame()
-    {
-        TimeLeft = 0;
-        EndPanel.SetActive(true);
-        StartCoroutine(SendScoreToAPI());
-    }
-
-    public void RetryGame()
-    {
-        SceneManager.LoadScene("GameScene");
-    }
-
-    public void GoToScoreboard()
-    {
-        SceneManager.LoadScene("ScoreboardScene");
-    }
-
-    private IEnumerator SendScoreToAPI()
-    {
-        UserScore data = new UserScore { username = AuthHandler.Username, score = Score };
-        string jsonData = JsonUtility.ToJson(data);
-
-        UnityWebRequest www = UnityWebRequest.Put(apiUrl, jsonData);
-        www.method = "PUT";
-        www.SetRequestHeader("Content-Type", "application/json");
-        www.SetRequestHeader("x-token", AuthHandler.Token);
-
-        yield return www.SendWebRequest();
-
-        if (www.result == UnityWebRequest.Result.Success)
-        {
-            Debug.Log("✅ Score enviado: " + Score);
-        }
-        else
-        {
-            Debug.LogError("❌ Error al enviar score: " + www.error);
+            this.value = value;
+            this.timestamp = timestamp;
         }
     }
-}
-
-[System.Serializable]
-class UserScore
-{
-    public string username;
-    public int score;
 }

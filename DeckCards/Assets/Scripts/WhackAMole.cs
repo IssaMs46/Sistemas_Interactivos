@@ -2,20 +2,18 @@ using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 using System.Collections;
+using UnityEngine.SceneManagement;
 
 public class WhackAMole : MonoBehaviour
 {
     public Button moleButton;
     public TextMeshProUGUI scoreText;
     public TextMeshProUGUI timerText;
-
     public GameObject gamePanel;
     public GameObject endPanel;
+    public TextMeshProUGUI finalScoreText;
 
-    public TextMeshProUGUI finalScoreText; 
-    public TextMeshProUGUI usernameText;
-
-    public float gameDuration = 20f; // duración del juego en segundos
+    [SerializeField]public float gameDuration = 20f;
     private int score = 0;
     private float timeLeft;
     private bool gameRunning = false;
@@ -25,21 +23,8 @@ public class WhackAMole : MonoBehaviour
         timeLeft = gameDuration;
         moleButton.onClick.AddListener(HitMole);
         moleButton.gameObject.SetActive(false);
-
-        // Aseguramos el estado inicial de los paneles
-        if (gamePanel != null) gamePanel.SetActive(true);
-        if (endPanel != null) endPanel.SetActive(false);
-
-        // Mostrar el nombre de usuario obtenido desde AuthHandler
-        if (usernameText != null)
-        {
-            usernameText.text = "Jugador: " + AuthHandler.Username;
-        }
-        else
-        {
-            Debug.Log("No se encontró usernameText");
-        }
-
+        gamePanel.SetActive(true);
+        endPanel.SetActive(false);
         StartCoroutine(GameLoop());
     }
 
@@ -48,12 +33,9 @@ public class WhackAMole : MonoBehaviour
         if (gameRunning)
         {
             timeLeft -= Time.deltaTime;
-            timerText.text = "Tiempo: " + Mathf.Ceil(timeLeft).ToString();
-
+            timerText.text = "Tiempo: " + Mathf.Ceil(timeLeft);
             if (timeLeft <= 0)
-            {
                 EndGame();
-            }
         }
     }
 
@@ -80,14 +62,9 @@ public class WhackAMole : MonoBehaviour
     void ShowMole()
     {
         if (!gameRunning) return;
-
         RectTransform rt = moleButton.GetComponent<RectTransform>();
-        float x = Random.Range(-200f, 200f);
-        float y = Random.Range(-100f, 100f);
-        rt.anchoredPosition = new Vector2(x, y);
-
+        rt.anchoredPosition = new Vector2(Random.Range(-200f, 200f), Random.Range(-100f, 100f));
         moleButton.gameObject.SetActive(true);
-
         StartCoroutine(HideMoleAfterDelay());
     }
 
@@ -102,28 +79,25 @@ public class WhackAMole : MonoBehaviour
         gameRunning = false;
         moleButton.gameObject.SetActive(false);
         timerText.text = "¡Fin del juego!";
-
-        if (gamePanel != null) gamePanel.SetActive(false);
-        if (endPanel != null) endPanel.SetActive(true);
-
+        gamePanel.SetActive(false);
+        endPanel.SetActive(true);
         finalScoreText.text = "Tu puntuación: " + score;
 
-        // Usar directamente el método de AuthHandler para actualizar el score
-        if (!string.IsNullOrEmpty(AuthHandler.Username) && !string.IsNullOrEmpty(AuthHandler.Token))
-        {
-            AuthHandler instance = FindObjectOfType<AuthHandler>();
-            if (instance != null)
-            {
-                instance.UpdateScore(score);
-            }
-            else
-            {
-                Debug.LogError("❌ No se encontró AuthHandler en la escena.");
-            }
-        }
-        else
-        {
-            Debug.LogError("❌ Usuario no autenticado. No se puede enviar score.");
-        }
+        // Guardar score
+        ScoreManager scoreManager = FindObjectOfType<ScoreManager>();
+        if (scoreManager != null)
+            scoreManager.SaveScore(score);
+    }
+
+    // Llamado desde el botón "SCORES"
+    public void GoToScoresScene()
+    {
+        SceneManager.LoadScene("ScoresScene");
+    }
+
+    // Llamado desde el botón "RETRY"
+    public void RetryGame()
+    {
+        SceneManager.LoadScene(SceneManager.GetActiveScene().name);
     }
 }
