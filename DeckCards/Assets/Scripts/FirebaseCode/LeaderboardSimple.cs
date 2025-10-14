@@ -1,5 +1,4 @@
 using Firebase.Database;
-using Firebase.Extensions;
 using System;
 using System.Collections.Generic;
 using TMPro;
@@ -12,42 +11,50 @@ public class LeaderboardSimple : MonoBehaviour
 
     void Start()
     {
-        dbRef = FirebaseDatabase.DefaultInstance.RootReference;
-        LoadLeaderboard();
+        dbRef = FirebaseDatabase.DefaultInstance.GetReference("users");
+        dbRef.OrderByChild("score").ValueChanged += HandleValueChanged;
+        leaderboardText.text = "Esperando datos...";
     }
 
-    public void LoadLeaderboard()
+    private void HandleValueChanged(object sender, ValueChangedEventArgs e)
     {
-        leaderboardText.text = "Cargando leaderboard...";
-
-        dbRef.Child("users").OrderByChild("score").LimitToLast(10).GetValueAsync().ContinueWithOnMainThread(task =>
+        if (e.DatabaseError != null)
         {
-            if (task.IsFaulted)
-            {
-                leaderboardText.text = "Error al cargar leaderboard.";
-                return;
-            }
+            leaderboardText.text = "Error al cargar leaderboard.";
+            Debug.LogError("Firebase error: " + e.DatabaseError.Message);
+            return;
+        }
 
-            if (task.IsCompleted)
-            {
-                List<UserScore> leaderboard = new List<UserScore>();
-                foreach (DataSnapshot userSnapshot in task.Result.Children)
-                {
-                    string username = userSnapshot.Child("username").Value?.ToString() ?? "Sin nombre";
-                    int score = 0;
-                    int.TryParse(userSnapshot.Child("score").Value?.ToString(), out score);
-                    leaderboard.Add(new UserScore(username, score));
-                }
+        if (e.Snapshot == null || e.Snapshot.ChildrenCount == 0)
+        {
+            leaderboardText.text = "Sin datos aún.";
+            return;
+        }
 
-                leaderboard.Sort((a, b) => b.score.CompareTo(a.score));
+        List<UserScore> leaderboard = new List<UserScore>();
 
-                string displayText = "TOP 10 JUGADORES\n\n";
-                for (int i = 0; i < leaderboard.Count; i++)
-                    displayText += $"{i + 1}. {leaderboard[i].username} — {leaderboard[i].score}\n";
+        foreach (DataSnapshot userSnapshot in e.Snapshot.Children)
+        {
+            string username = userSnapshot.Child("username").Value?.ToString() ?? "Sin nombre";
+            int score = 0;
+            int.TryParse(userSnapshot.Child("score").Value?.ToString(), out score);
+            leaderboard.Add(new UserScore(username, score));
+        }
 
-                leaderboardText.text = displayText;
-            }
-        });
+        leaderboard.Sort((a, b) => b.score.CompareTo(a.score));
+
+        string displayText = "TOP 10 JUGADORES\n\n";
+        int limit = Mathf.Min(10, leaderboard.Count);
+        for (int i = 0; i < limit; i++)
+            displayText += $"{i + 1}. {leaderboard[i].username} — {leaderboard[i].score}\n";
+
+        leaderboardText.text = displayText;
+    }
+
+    void OnDestroy()
+    {
+        if (dbRef != null)
+            dbRef.ValueChanged -= HandleValueChanged;
     }
 
     [Serializable]
