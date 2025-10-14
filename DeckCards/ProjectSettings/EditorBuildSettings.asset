@@ -14,4 +14,10 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/Marcador.unity
     guid: d924b64079ca5d34aa6e0df4b176953b
+  - enabled: 1
+    path: Assets/Scenes/Marcador2.unity
+    guid: 67f1aea87d5405e4793bebc736094ee2
+  - enabled: 1
+    path: Assets/Scenes/Trabajo4.unity
+    guid: 9f1514084f745f749a3050babd36aeec
   m_configObjects: {}

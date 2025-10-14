@@ -8,6 +8,8 @@ public class LoadSceneWhenAuthenticated : MonoBehaviour
 {
     [SerializeField]
     private string _sceneToLoad = "Jueguito";
+    [SerializeField]
+    private bool _whenAuthenticated = true;
 
     // Start is called before the first frame update
     void Start()
@@ -17,11 +19,21 @@ public class LoadSceneWhenAuthenticated : MonoBehaviour
 
     private void HandleAuthStateChange(object sender, EventArgs e)
     {
-        if (FirebaseAuth.DefaultInstance.CurrentUser != null)
+        if (_whenAuthenticated)
         {
-            Debug.Log(FirebaseAuth.DefaultInstance.CurrentUser.UserId);
-            SceneManager.LoadScene(_sceneToLoad);
+            if (FirebaseAuth.DefaultInstance.CurrentUser != null)
+            {
+                SceneManager.LoadScene(_sceneToLoad);
+            }
         }
+        else
+        {
+            if (FirebaseAuth.DefaultInstance.CurrentUser == null)
+            {
+                SceneManager.LoadScene(_sceneToLoad);
+            }
+        }
+        
     }
 
     void OnDestroy()

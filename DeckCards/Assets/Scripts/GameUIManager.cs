@@ -21,6 +21,6 @@ public class GameUIManager : MonoBehaviour
 
     public void GoToLeaderboard()
     {
-        SceneManager.LoadScene("Marcador"); // 👈 asegúrate de que así se llama tu escena del marcador
+        SceneManager.LoadScene("Marcador2"); // 👈 asegúrate de que así se llama tu escena del marcador
     }
 }
