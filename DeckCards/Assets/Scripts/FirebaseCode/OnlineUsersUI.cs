@@ -50,9 +50,12 @@ public class OnlineUsersUI : MonoBehaviour
 
         if (!string.IsNullOrEmpty(username))
         {
-            onlineUsers[id] = username;
-            UpdateUI();
-            Debug.Log(username + " connected.");
+            if (!onlineUsers.ContainsKey(id))
+            {
+                onlineUsers[id] = username;
+                UpdateUI();
+                Debug.Log(username + " connected.");
+            }
         }
     }
 

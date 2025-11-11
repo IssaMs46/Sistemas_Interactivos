@@ -6,6 +6,11 @@ using UnityEngine;
 
 public class FriendRequestManager : MonoBehaviour
 {
+    public static event System.Action<string, string> OnFriendRequestReceived;
+    
+    public static event System.Action<string> OnFriendRequestRemoved;
+    
+    
     private DatabaseReference mDatabaseUsersRef;
     private string myUsername;
     private string myUserId;
@@ -107,6 +112,7 @@ public class FriendRequestManager : MonoBehaviour
         if (args.DatabaseError != null)
         {
             Debug.LogError(args.DatabaseError.Message);
+            
             return;
         }
         
@@ -181,12 +187,27 @@ public class FriendRequestManager : MonoBehaviour
         var friendUserId = args.Snapshot.Key;
         var friendUsername = (string)args.Snapshot.Value;
         Debug.Log("Friend request from "+ friendUsername+ ", userId " + args.Snapshot.Key);
+        
+        if (OnFriendRequestReceived != null)
+        {
+            OnFriendRequestReceived.Invoke(friendUserId, friendUsername);
+        }
 
         //Aqui puedo mostrar graficamente la solicitud de amistad entrante
     }
     private void HandleFriendRequestRemoved(object sender, ChildChangedEventArgs e)
     {
-        //Aqui puedo eliminar graficamente la solicitud de amistad que ha sido respondida 
+        if (e.DatabaseError != null)
+        {
+            Debug.LogError(e.DatabaseError.Message);
+            return;
+        }
+
+        string friendId = e.Snapshot.Key;
+        Debug.Log("Friend request removed: " + friendId);
+
+        if (OnFriendRequestRemoved != null)
+            OnFriendRequestRemoved.Invoke(friendId);
     }
 }
 public class FriendResponse

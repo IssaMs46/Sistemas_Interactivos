@@ -20,4 +20,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/Trabajo4.unity
     guid: 9f1514084f745f749a3050babd36aeec
+  - enabled: 1
+    path: Assets/Scenes/Inicio.unity
+    guid: 60cf8c04052952440b5146ecd80dc5fd
   m_configObjects: {}

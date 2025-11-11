@@ -11,7 +11,8 @@ public class OnlineUsersManager : MonoBehaviour
 {
     private DatabaseReference mDatabaseRef;
     private string Username;
-
+    private string OnlineUserId;
+    
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     async void Start()
     {
@@ -93,10 +94,11 @@ public class OnlineUsersManager : MonoBehaviour
         if (currentUser != null)
         {
             mDatabaseRef.Child("users-online").Child(currentUser.UserId).SetValueAsync(Username);
+            OnlineUserId = currentUser.UserId;
         }
         else
         {
-            mDatabaseRef.Child("users-online").Child(currentUser.UserId).SetValueAsync(null);
+            mDatabaseRef.Child("users-online").Child(OnlineUserId).SetValueAsync(null);
         }
     }
 
