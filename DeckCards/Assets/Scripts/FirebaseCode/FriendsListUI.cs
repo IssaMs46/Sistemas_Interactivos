@@ -1,10 +1,10 @@
 using Firebase.Auth;
 using Firebase.Database;
 using Firebase.Extensions;
+using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
-using System.Collections.Generic;
 
 public class FriendsListUI : MonoBehaviour
 {
@@ -13,114 +13,115 @@ public class FriendsListUI : MonoBehaviour
     [SerializeField] private GameObject friendItemPrefab;
     [SerializeField] private TextMeshProUGUI emptyText;
 
-    private DatabaseReference friendsRef;
+    private DatabaseReference usersRef;
+    private DatabaseReference usersOnlineRef;
     private string myUserId;
-    private Dictionary<string, GameObject> activeFriends = new Dictionary<string, GameObject>();
+
+    private Dictionary<string, TextMeshProUGUI> friendNameTexts = new();
 
     void Start()
     {
-        var auth = FirebaseAuth.DefaultInstance;
-        var user = auth.CurrentUser;
+        usersRef = FirebaseDatabase.DefaultInstance.GetReference("users");
+        usersOnlineRef = FirebaseDatabase.DefaultInstance.GetReference("users-online");
+        myUserId = FirebaseAuth.DefaultInstance.CurrentUser?.UserId;
 
-        if (user == null)
+        if (myUserId == null)
         {
-            Debug.LogWarning("No hay usuario logeado para mostrar amigos.");
+            Debug.LogWarning("FriendsListUI: No user logged in.");
             return;
         }
 
-        myUserId = user.UserId;
-        friendsRef = FirebaseDatabase.DefaultInstance.GetReference("users").Child(myUserId).Child("friends");
-
-        // Cargar estado inicial y escuchar cambios
-        LoadFriendsList();
-        friendsRef.ChildAdded += HandleFriendAdded;
-        friendsRef.ChildRemoved += HandleFriendRemoved;
+        LoadFriends();
+        ListenForOnlineStatusChanges();
     }
 
-    private void LoadFriendsList()
+    // Cargar la lista de amigos desde Firebase
+    private void LoadFriends()
     {
-        friendsRef.GetValueAsync().ContinueWithOnMainThread(task =>
+        usersRef.Child(myUserId).Child("friends").GetValueAsync().ContinueWithOnMainThread(task =>
         {
-            if (task.IsFaulted)
+            if (task.IsFaulted || !task.IsCompleted)
             {
-                Debug.LogError("Error al cargar lista de amigos: " + task.Exception);
+                Debug.LogError("Error loading friends list: " + task.Exception);
                 return;
             }
-
-            if (!task.IsCompleted || task.Result == null)
-                return;
 
             DataSnapshot snapshot = task.Result;
-
-            foreach (Transform child in friendsContainer)
-                Destroy(child.gameObject);
-            activeFriends.Clear();
-
-            foreach (DataSnapshot friend in snapshot.Children)
+            if (!snapshot.Exists)
             {
-                string friendId = friend.Key;
-                string friendName = friend.Value != null ? friend.Value.ToString() : "Unknown";
-                CreateFriendItem(friendId, friendName);
+                emptyText.gameObject.SetActive(true);
+                return;
             }
 
-            RefreshEmptyText();
+            emptyText.gameObject.SetActive(false);
+
+            foreach (DataSnapshot child in snapshot.Children)
+            {
+                string friendId = child.Key;
+                string friendName = child.Value.ToString();
+
+                // Crear item en la UI
+                GameObject item = Instantiate(friendItemPrefab, friendsContainer);
+                item.transform.localScale = Vector3.one;
+
+                TextMeshProUGUI nameText = item.GetComponentInChildren<TextMeshProUGUI>();
+                nameText.text = friendName;
+                nameText.color = Color.gray; // color base
+
+                friendNameTexts[friendId] = nameText;
+            }
+
+            // Actualiza los colores basados en quién está online
+            RefreshOnlineColors();
         });
     }
 
-    private void HandleFriendAdded(object sender, ChildChangedEventArgs args)
+    // Escuchar conexiones y desconexiones en tiempo real
+    private void ListenForOnlineStatusChanges()
     {
-        if (args.Snapshot == null || !args.Snapshot.Exists)
-            return;
-
-        string id = args.Snapshot.Key;
-        string name = args.Snapshot.Value != null ? args.Snapshot.Value.ToString() : "Unknown";
-
-        if (!activeFriends.ContainsKey(id))
+        usersOnlineRef.ChildAdded += (sender, args) =>
         {
-            CreateFriendItem(id, name);
-            RefreshEmptyText();
-            Debug.Log("Nuevo amigo agregado: " + name);
-        }
-    }
+            if (args.Snapshot == null || !args.Snapshot.Exists) return;
 
-    private void HandleFriendRemoved(object sender, ChildChangedEventArgs args)
-    {
-        if (args.Snapshot == null)
-            return;
+            string userId = args.Snapshot.Key;
+            if (friendNameTexts.ContainsKey(userId))
+            {
+                friendNameTexts[userId].color = Color.green;
+                Debug.Log(friendNameTexts[userId].text + " se ha conectado (color cambiado a verde).");
+            }
+        };
 
-        string id = args.Snapshot.Key;
-
-        if (activeFriends.ContainsKey(id))
+        usersOnlineRef.ChildRemoved += (sender, args) =>
         {
-            Destroy(activeFriends[id]);
-            activeFriends.Remove(id);
-            Debug.Log("Amigo eliminado de la lista: " + id);
-            RefreshEmptyText();
-        }
+            if (args.Snapshot == null || !args.Snapshot.Exists) return;
+
+            string userId = args.Snapshot.Key;
+            if (friendNameTexts.ContainsKey(userId))
+            {
+                friendNameTexts[userId].color = Color.gray;
+                Debug.Log(friendNameTexts[userId].text + " se ha desconectado (color cambiado a gris).");
+            }
+        };
     }
 
-    private void CreateFriendItem(string friendId, string friendName)
+    // Revisar el estado inicial de todos los amigos
+    private void RefreshOnlineColors()
     {
-        GameObject item = Instantiate(friendItemPrefab, friendsContainer);
-        TextMeshProUGUI nameText = item.GetComponentInChildren<TextMeshProUGUI>();
-        if (nameText != null)
-            nameText.text = friendName;
-
-        activeFriends[friendId] = item;
-    }
-
-    private void RefreshEmptyText()
-    {
-        if (emptyText == null) return;
-        emptyText.gameObject.SetActive(activeFriends.Count == 0);
-    }
-
-    private void OnDestroy()
-    {
-        if (friendsRef != null)
+        usersOnlineRef.GetValueAsync().ContinueWithOnMainThread(task =>
         {
-            friendsRef.ChildAdded -= HandleFriendAdded;
-            friendsRef.ChildRemoved -= HandleFriendRemoved;
-        }
+            if (task.IsFaulted || !task.IsCompleted)
+                return;
+
+            DataSnapshot snapshot = task.Result;
+            HashSet<string> onlineUsers = new HashSet<string>();
+
+            foreach (DataSnapshot child in snapshot.Children)
+                onlineUsers.Add(child.Key);
+
+            foreach (var kvp in friendNameTexts)
+            {
+                kvp.Value.color = onlineUsers.Contains(kvp.Key) ? Color.green : Color.gray;
+            }
+        });
     }
 }
