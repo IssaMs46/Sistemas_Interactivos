@@ -633,7 +633,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ebc52df834fcb4045be909a6ce0973ce, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  usersListText: {fileID: 1533264168}
+  usersOnlineText: {fileID: 0}
 --- !u!4 &322808771
 Transform:
   m_ObjectHideFlags: 0
@@ -749,6 +749,7 @@ GameObject:
   m_Component:
   - component: {fileID: 479365937}
   - component: {fileID: 479365939}
+  - component: {fileID: 479365940}
   - component: {fileID: 479365938}
   m_Layer: 5
   m_Name: Panel_Conectados
@@ -815,6 +816,19 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 479365936}
   m_CullTransparentMesh: 1
+--- !u!114 &479365940
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 479365936}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ebc52df834fcb4045be909a6ce0973ce, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  usersOnlineText: {fileID: 1533264168}
 --- !u!1 &506746308
 GameObject:
   m_ObjectHideFlags: 0
@@ -1917,7 +1931,6 @@ GameObject:
   - component: {fileID: 1806243793}
   - component: {fileID: 1806243792}
   - component: {fileID: 1806243791}
-  - component: {fileID: 1806243790}
   - component: {fileID: 1806243789}
   m_Layer: 5
   m_Name: LogOut
@@ -1958,19 +1971,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2e90f77aa1851744bb0dedda64bb4234, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
---- !u!114 &1806243790
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1806243787}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: e53212000d3d28441907ad5674ad18b5, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  sceneName: Trabajo4
+  sceneToLoad: Trabajo4
 --- !u!114 &1806243791
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2014,19 +2015,7 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 1806243792}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls:
-      - m_Target: {fileID: 1806243790}
-        m_TargetAssemblyTypeName: ChangeScene, Assembly-CSharp
-        m_MethodName: LoadScene
-        m_Mode: 1
-        m_Arguments:
-          m_ObjectArgument: {fileID: 0}
-          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-          m_IntArgument: 0
-          m_FloatArgument: 0
-          m_StringArgument: 
-          m_BoolArgument: 0
-        m_CallState: 2
+      m_Calls: []
 --- !u!114 &1806243792
 MonoBehaviour:
   m_ObjectHideFlags: 0
